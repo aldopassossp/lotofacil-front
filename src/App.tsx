@@ -5,7 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Importacao from './pages/Importacao';
 import Sugestoes from './pages/Sugestoes';
 import EntradaManual from './pages/EntradaManual';
-// import SugestoesPersonalizadas from './pages/SugestoesPersonalizadas'; // Import when created
+import SugestoesPersonalizadas from './pages/SugestoesPersonalizadas';
 import Layout from './components/Layout';
 import HealthCheck from './components/HealthCheck';
 import { CustomThemeProvider } from './contexts/ThemeContext'; // Import the custom theme provider
@@ -22,7 +22,7 @@ function App() {
             <Route path="/importacao" element={<Importacao />} />
             <Route path="/sugestoes" element={<Sugestoes />} />
             <Route path="/entrada-manual" element={<EntradaManual />} />
-            {/* <Route path="/sugestoes-personalizadas" element={<SugestoesPersonalizadas />} /> */}{/* Add route when page is created */}
+            <Route path="/sugestoes-personalizadas" element={<SugestoesPersonalizadas />} />
           </Routes>
           <HealthCheck />
         </Layout>

@@ -62,19 +62,19 @@ const Layout = ({ children }: LayoutProps) => {
               </ListItemIcon>
               <ListItemText primary="Entrada Manual" />
             </ListItemButton>
-             <ListItemButton component={RouterLink} to="/sugestoes"> {/* Keep old suggestions for now? */}
+            <ListItemButton component={RouterLink} to="/sugestoes"> {/* Keep old suggestions for now? */}
               <ListItemIcon>
                 <LightbulbIcon />
               </ListItemIcon>
               <ListItemText primary="Sugestões (Fech.)" />
             </ListItemButton>
             {/* Add link for Personalized Suggestions */}
-            {/* <ListItemButton component={RouterLink} to="/sugestoes-personalizadas"> */}
-            {/*  <ListItemIcon> */}
-            {/*    <FilterAltIcon /> */}
-            {/*  </ListItemIcon> */}
-            {/*  <ListItemText primary="Sugestões (Filtros)" /> */}
-            {/* </ListItemButton> */}
+            <ListItemButton component={RouterLink} to="/sugestoes-personalizadas">
+              <ListItemIcon>
+                <FilterAltIcon />
+              </ListItemIcon>
+              <ListItemText primary="Sugestões (Filtros)" />
+            </ListItemButton>
           </List>
           <Divider />
         </Box>

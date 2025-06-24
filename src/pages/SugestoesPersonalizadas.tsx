@@ -1,215 +1,609 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-    Box,
-    Typography,
-    Paper,
-    TextField,
-    Button,
-    CircularProgress,
-    Alert,
-    Checkbox,
-    FormControlLabel,
-    FormGroup,
-    Slider,
-    Accordion,
-    AccordionSummary,
-    AccordionDetails,
-    Pagination
+  Typography,
+  Box,
+  Paper,
+  Grid,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Alert,
+  Button,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Checkbox,
+  FormControlLabel,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Divider,
+  Slider,
+  Switch
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
 import { FiltroSugestaoDTO } from '../dto/sugestao/FiltroSugestaoDTO';
 import sugestaoService from '../services/sugestao/sugestaoService';
 import { Todos } from '../entity/Todos';
-import { Page } from '../dto/Page';
 
 const SugestoesPersonalizadas: React.FC = () => {
-    const [filtros, setFiltros] = useState<Partial<FiltroSugestaoDTO>>({ page: 0, size: 20 });
-    const [sugestoes, setSugestoes] = useState<Todos[]>([]);
-    const [totalPaginas, setTotalPaginas] = useState<number>(0);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
+  const [filtros, setFiltros] = useState<FiltroSugestaoDTO>({
+    somaMinima: undefined,
+    somaMaxima: undefined,
+    paresMinimo: undefined,
+    paresMaximo: undefined,
+    seqDoisMinimo: undefined,
+    seqDoisMaximo: undefined,
+    seqTresMinimo: undefined,
+    seqTresMaximo: undefined,
+    seqQuatroMinimo: undefined,
+    seqQuatroMaximo: undefined,
+    seqCincoMinimo: undefined,
+    seqCincoMaximo: undefined,
+    seqSeisMinimo: undefined,
+    seqSeisMaximo: undefined,
+    seqSeteMinimo: undefined,
+    seqSeteMaximo: undefined,
+    seqOitoMinimo: undefined,
+    seqOitoMaximo: undefined,
+    pontosMinimo: undefined,
+    pontosMaximo: undefined,
+    linhaMinimo: undefined,
+    linhaMaximo: undefined,
+    colunaMinimo: undefined,
+    colunaMaximo: undefined,
+    jaFoiSorteado: undefined,
+    numerosObrigatorios: [],
+    numerosProibidos: []
+  });
 
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = event.target;
-        // Handle numeric inputs, allowing empty string
-        const numericFields = ['pontosMin', 'pontosMax', 'somaMin', 'somaMax', 'imparesMin', 'imparesMax', 
-                               'seqDoisMin', 'seqDoisMax', 'seqTresMin', 'seqTresMax', 'seqQuatroMin', 'seqQuatroMax',
-                               'seqCincoMin', 'seqCincoMax', 'seqSeisMin', 'seqSeisMax', 'seqSeteMin', 'seqSeteMax',
-                               'seqOitoMin', 'seqOitoMax'];
-        setFiltros(prev => ({
-            ...prev,
-            [name]: numericFields.includes(name) ? (value === '' ? undefined : Number(value)) : value
-        }));
-    };
-    
-    const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, checked } = event.target;
-        setFiltros(prev => ({
-            ...prev,
-            [name]: checked
-        }));
-    };
+  const [resultados, setResultados] = useState<Todos[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedFilters, setExpandedFilters] = useState<string[]>(["basicos"]);
 
-    const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-        setFiltros(prev => ({ ...prev, page: value - 1 })); // Pagination is 1-based, API is 0-based
-        buscarSugestoes(value - 1);
-    };
+  // Estados para controle de filtros avançados
+  const [usarSoma, setUsarSoma] = useState(false);
+  const [usarPares, setUsarPares] = useState(false);
+  const [usarSequencias, setUsarSequencias] = useState(false);
+  const [usarPontos, setUsarPontos] = useState(false);
+  const [usarLinhaColuna, setUsarLinhaColuna] = useState(false);
+  const [usarSorteado, setUsarSorteado] = useState(false);
+  const [usarNumerosEspecificos, setUsarNumerosEspecificos] = useState(false);
 
-    const buscarSugestoes = async (page = 0) => {
-        setLoading(true);
-        setError(null);
-        setSugestoes([]);
-        setTotalPaginas(0);
-
-        const filtrosParaApi: FiltroSugestaoDTO = {
-            ...filtros,
-            page: page,
-            size: filtros.size || 20,
-            // Ensure numeric fields are numbers or undefined
-            pontosMin: filtros.pontosMin,
-            pontosMax: filtros.pontosMax,
-            somaMin: filtros.somaMin,
-            somaMax: filtros.somaMax,
-            paresMin: filtros.paresMin,
-            paresMax: filtros.paresMax,
-            seqDoisMin: filtros.seqDoisMin,
-            seqDoisMax: filtros.seqDoisMax,
-            seqTresMin: filtros.seqTresMin,
-            seqTresMax: filtros.seqTresMax,
-            seqQuatroMin: filtros.seqQuatroMin,
-            seqQuatroMax: filtros.seqQuatroMax,
-            seqCincoMin: filtros.seqCincoMin,
-            seqCincoMax: filtros.seqCincoMax,
-            seqSeisMin: filtros.seqSeisMin,
-            seqSeisMax: filtros.seqSeisMax,
-            seqSeteMin: filtros.seqSeteMin,
-            seqSeteMax: filtros.seqSeteMax,
-            seqOitoMin: filtros.seqOitoMin,
-            seqOitoMax: filtros.seqOitoMax,
-            // Handle lists later if needed
-            linhas: filtros.linhas,
-            colunas: filtros.colunas,
-            naoIncluirSorteadosAnteriormente: filtros.naoIncluirSorteadosAnteriormente
-        };
-
-        try {
-            const response = await sugestaoService.buscarSugestoesPersonalizadas(filtrosParaApi);
-            setSugestoes(response.content);
-            setTotalPaginas(response.totalPages);
-        } catch (err: any) {
-            console.error("Erro ao buscar sugestões:", err);
-            setError(err.response?.data?.message || err.message || 'Erro ao buscar sugestões.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        setFiltros(prev => ({ ...prev, page: 0 })); // Reset page on new search
-        buscarSugestoes(0);
-    };
-
-    return (
-        <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="h4" gutterBottom component="div" sx={{ mb: 3 }}>
-                Sugestões Personalizadas
-            </Typography>
-
-            <Paper sx={{ p: 3, mb: 3 }}>
-                <form onSubmit={handleSubmit}>
-                    <Grid container spacing={3}>
-                        {/* Basic Filters */}
-                        <Grid size={{xs:12, md:6}}>
-                            <TextField label="Pontos Mín." name="pontosMin" type="number" value={filtros.pontosMin ?? ''} onChange={handleInputChange} fullWidth size="small" InputProps={{ inputProps: { min: 0, max: 15 } }}/>
-                        </Grid>
-                        <Grid size={{xs:12, md:6}}>
-                            <TextField label="Pontos Máx." name="pontosMax" type="number" value={filtros.pontosMax ?? ''} onChange={handleInputChange} fullWidth size="small" InputProps={{ inputProps: { min: 0, max: 15 } }}/>
-                        </Grid>
-                        <Grid size={{xs:12, md:6}}>
-                            <TextField label="Soma Mín." name="somaMin" type="number" value={filtros.somaMin ?? ''} onChange={handleInputChange} fullWidth size="small" />
-                        </Grid>
-                        <Grid size={{xs:12, md:6}}>
-                            <TextField label="Soma Máx." name="somaMax" type="number" value={filtros.somaMax ?? ''} onChange={handleInputChange} fullWidth size="small" />
-                        </Grid>
-                        <Grid size={{xs:12, md:6}}>
-                            <TextField label="Ímpares Mín." name="imparesMin" type="number" value={filtros.paresMin ?? ''} onChange={handleInputChange} fullWidth size="small" InputProps={{ inputProps: { min: 0, max: 15 } }}/>
-                        </Grid>
-                        <Grid size={{xs:12, md:6}}>
-                            <TextField label="Ímpares Máx." name="imparesMax" type="number" value={filtros.paresMax ?? ''} onChange={handleInputChange} fullWidth size="small" InputProps={{ inputProps: { min: 0, max: 15 } }}/>
-                        </Grid>
-
-                        {/* Advanced Filters in Accordion */}
-                        <Grid size={{xs:12}}>
-                            <Accordion>
-                                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                    <Typography>Filtros Avançados (Sequências, Linha/Coluna)</Typography>
-                                </AccordionSummary>
-                                <AccordionDetails>
-                                    <Grid container spacing={2}>
-                                        {/* Add inputs for seq_dois, seq_tres, etc. */}
-                                        <Grid size={{xs:6, sm:3}}><TextField label="Seq 2 Mín" name="seqDoisMin" type="number" value={filtros.seqDoisMin ?? ''} onChange={handleInputChange} fullWidth size="small" /></Grid>
-                                        <Grid size={{xs:6, sm:3}}><TextField label="Seq 2 Máx" name="seqDoisMax" type="number" value={filtros.seqDoisMax ?? ''} onChange={handleInputChange} fullWidth size="small" /></Grid>
-                                        <Grid size={{xs:6, sm:3}}><TextField label="Seq 3 Mín" name="seqTresMin" type="number" value={filtros.seqTresMin ?? ''} onChange={handleInputChange} fullWidth size="small" /></Grid>
-                                        <Grid size={{xs:6, sm:3}}><TextField label="Seq 3 Máx" name="seqTresMax" type="number" value={filtros.seqTresMax ?? ''} onChange={handleInputChange} fullWidth size="small" /></Grid>
-                                        {/* ... add other sequence inputs ... */}
-                                        <Grid size={{xs:12, sm:6}}><TextField label="Linhas (separadas por vírgula)" name="linhas" value={filtros.linhas?.join(',') ?? ''} onChange={(e) => setFiltros(prev => ({...prev, linhas: e.target.value ? e.target.value.split(',') : undefined}))} fullWidth size="small" /></Grid>
-                                        <Grid size={{xs:12, sm:6}}><TextField label="Colunas (separadas por vírgula)" name="colunas" value={filtros.colunas?.join(',') ?? ''} onChange={(e) => setFiltros(prev => ({...prev, colunas: e.target.value ? e.target.value.split(',') : undefined}))} fullWidth size="small" /></Grid>
-                                    </Grid>
-                                </AccordionDetails>
-                            </Accordion>
-                        </Grid>
-                        
-                        <Grid size={{xs:12}}>
-                             <FormControlLabel
-                                control={<Checkbox checked={filtros.naoIncluirSorteadosAnteriormente ?? false} onChange={handleCheckboxChange} name="naoIncluirSorteadosAnteriormente" />}
-                                label="Excluir combinações já sorteadas"
-                            />
-                        </Grid>
-
-                        <Grid size={{xs:12}}>
-                            <Button type="submit" variant="contained" disabled={loading} fullWidth>
-                                {loading ? <CircularProgress size={24} /> : 'Buscar Sugestões'}
-                            </Button>
-                        </Grid>
-                    </Grid>
-                </form>
-            </Paper>
-
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-            {/* Results Area */}
-            {!loading && sugestoes.length > 0 && (
-                <Paper sx={{ p: 2, mt: 3 }}>
-                    <Typography variant="h6" gutterBottom>Resultados ({sugestoes.length} nesta página)</Typography>
-                    {/* Display suggestions - improve formatting later */}
-                    <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
-                        {sugestoes.map(sug => (
-                            <Typography key={sug.idTodos} variant="body2" sx={{ fontFamily: 'monospace', mb: 0.5 }}>
-                                {sug.sequencia} (Soma: {sug.soma}, Pares: {sug.pares}, Pts: {sug.pontos ?? 'N/A'})
-                            </Typography>
-                        ))}
-                    </Box>
-                    {totalPaginas > 1 && (
-                        <Pagination 
-                            count={totalPaginas} 
-                            page={filtros.page ? filtros.page + 1 : 1} 
-                            onChange={handlePageChange} 
-                            color="primary" 
-                            sx={{ mt: 2, display: 'flex', justifyContent: 'center' }} 
-                        />
-                    )}
-                </Paper>
-            )}
-            {!loading && sugestoes.length === 0 && !error && (
-                 <Typography sx={{ mt: 2 }}>Nenhuma sugestão encontrada com os filtros aplicados.</Typography>
-            )}
-        </Box>
+  const handleAccordionChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    setExpandedFilters(prev => 
+      isExpanded 
+        ? [...prev, panel]
+        : prev.filter(p => p !== panel)
     );
+  };
+
+  const handleFiltroChange = (campo: keyof FiltroSugestaoDTO, valor: any) => {
+    setFiltros(prev => ({
+      ...prev,
+      [campo]: valor
+    }));
+  };
+
+  const handleSliderChange = (campo: keyof FiltroSugestaoDTO, valor: number | number[]) => {
+    if (Array.isArray(valor)) {
+      const [min, max] = valor;
+      const campoMinimo = campo.replace('Range', 'Minimo') as keyof FiltroSugestaoDTO;
+      const campoMaximo = campo.replace('Range', 'Maximo') as keyof FiltroSugestaoDTO;
+      setFiltros(prev => ({
+        ...prev,
+        [campoMinimo]: min,
+        [campoMaximo]: max
+      }));
+    }
+  };
+
+const buscarSugestoes = async () => {
+  try {
+    setLoading(true);
+    setError(null);
+
+    const filtrosLimpos = { ...filtros };
+
+    // (Seu código de limpeza dos filtros permanece igual)
+
+    const response = await sugestaoService.buscarSugestoesPersonalizadas(filtrosLimpos);
+
+    const resultadosAPI = response?.data?.content ?? [];
+
+    setResultados(Array.isArray(resultadosAPI) ? resultadosAPI : []);
+  } catch (err) {
+    setError('Erro ao buscar sugestões. Verifique os filtros e tente novamente.');
+    console.error('Erro na busca:', err);
+  } finally {
+    setLoading(false);
+  }
 };
 
-// Removido os mocks e placeholders, pois agora estamos usando os arquivos reais
+  const limparFiltros = () => {
+    setFiltros({
+      somaMinima: undefined,
+      somaMaxima: undefined,
+      paresMinimo: undefined,
+      paresMaximo: undefined,
+      imparesMinimo: undefined,
+      imparesMaximo: undefined,
+      seqDoisMinimo: undefined,
+      seqDoisMaximo: undefined,
+      seqTresMinimo: undefined,
+      seqTresMaximo: undefined,
+      seqQuatroMinimo: undefined,
+      seqQuatroMaximo: undefined,
+      seqCincoMinimo: undefined,
+      seqCincoMaximo: undefined,
+      seqSeisMinimo: undefined,
+      seqSeisMaximo: undefined,
+      seqSeteMinimo: undefined,
+      seqSeteMaximo: undefined,
+      seqOitoMinimo: undefined,
+      seqOitoMaximo: undefined,
+      pontosMinimo: undefined,
+      pontosMaximo: undefined,
+      linhaMinimo: undefined,
+      linhaMaximo: undefined,
+      colunaMinimo: undefined,
+      colunaMaximo: undefined,
+      jaFoiSorteado: undefined,
+      numerosObrigatorios: [],
+      numerosProibidos: []
+    });
+    
+    setUsarSoma(false);
+    setUsarPares(false);
+    setUsarSequencias(false);
+    setUsarPontos(false);
+    setUsarLinhaColuna(false);
+    setUsarSorteado(false);
+    setUsarNumerosEspecificos(false);
+  };
+
+  const renderNumeros = (todos: Todos) => {
+    // Extrai os números da string 'sequencia', converte para número e ordena
+    const numeros = todos.sequencia
+      ? (todos.sequencia.match(/\d{2}/g)?.map(Number).sort((a, b) => a - b) || [])
+      : [];
+
+    return (
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, my: 2 }}>
+        {numeros.map((numero, index) => (
+          <Chip 
+            key={index} 
+            label={numero} 
+            color="primary" 
+            variant="outlined" 
+            sx={{ 
+              width: 40, 
+              height: 40, 
+              borderRadius: '50%',
+              fontWeight: 'bold'
+            }} 
+          />
+        ))}
+      </Box>
+    );
+  };
+
+  return (
+    <Box>
+      <Typography variant="h4" gutterBottom>
+        Sugestões Personalizadas
+      </Typography>
+      
+      <Typography variant="body1" paragraph color="textSecondary">
+        Configure os filtros estatísticos para encontrar combinações que atendam aos seus critérios específicos.
+      </Typography>
+
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <FilterListIcon sx={{ mr: 1 }} />
+          <Typography variant="h6">Filtros de Busca</Typography>
+        </Box>
+
+        {/* Filtro de Soma */}
+        <Accordion expanded={expandedFilters.includes('soma')} onChange={handleAccordionChange('soma')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={usarSoma}
+                  onChange={(e) => setUsarSoma(e.target.checked)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              }
+              label="Filtro por Soma dos Números"
+              sx={{ mr: 2 }}
+            />
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={2}>
+              <Grid size={{xs:12, md:6}}>
+                <TextField
+                  fullWidth
+                  label="Soma Mínima"
+                  type="number"
+                  value={filtros.somaMinima || ''}
+                  onChange={(e) => handleFiltroChange('somaMinima', e.target.value ? parseInt(e.target.value) : undefined)}
+                  disabled={!usarSoma}
+                />
+              </Grid>
+              <Grid size={{xs:12, md:6}}>
+                <TextField
+                  fullWidth
+                  label="Soma Máxima"
+                  type="number"
+                  value={filtros.somaMaxima || ''}
+                  onChange={(e) => handleFiltroChange('somaMaxima', e.target.value ? parseInt(e.target.value) : undefined)}
+                  disabled={!usarSoma}
+                />
+              </Grid>
+            </Grid>
+          </AccordionDetails>
+        </Accordion>
+
+        {/* Filtro de Pares/Ímpares */}
+        <Accordion expanded={expandedFilters.includes('pares')} onChange={handleAccordionChange('pares')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={usarPares}
+                  onChange={(e) => setUsarPares(e.target.checked)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              }
+              label="Filtro por Quantidade de Pares/Ímpares"
+              sx={{ mr: 2 }}
+            />
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={2}>
+              <Grid size={{xs:12, md:3}}>
+                <TextField
+                  fullWidth
+                  label="Pares Mínimo"
+                  type="number"
+                  value={filtros.paresMinimo || ''}
+                  onChange={(e) => handleFiltroChange('paresMinimo', e.target.value ? parseInt(e.target.value) : undefined)}
+                  disabled={!usarPares}
+                />
+              </Grid>
+              <Grid size={{xs:12, md:3}}>
+                <TextField
+                  fullWidth
+                  label="Pares Máximo"
+                  type="number"
+                  value={filtros.paresMaximo || ''}
+                  onChange={(e) => handleFiltroChange('paresMaximo', e.target.value ? parseInt(e.target.value) : undefined)}
+                  disabled={!usarPares}
+                />
+              </Grid>
+              <Grid size={{xs:12, md:3}}>
+                <TextField
+                  fullWidth
+                  label="Ímpares Mínimo"
+                  type="number"
+                  value={filtros.imparesMinimo || ''}
+                  onChange={(e) => handleFiltroChange('imparesMinimo', e.target.value ? parseInt(e.target.value) : undefined)}
+                  disabled={!usarPares}
+                />
+              </Grid>
+              <Grid size={{xs:12, md:3}}>
+                <TextField
+                  fullWidth
+                  label="Ímpares Máximo"
+                  type="number"
+                  value={filtros.imparesMaximo || ''}
+                  onChange={(e) => handleFiltroChange('imparesMaximo', e.target.value ? parseInt(e.target.value) : undefined)}
+                  disabled={!usarPares}
+                />
+              </Grid>
+            </Grid>
+          </AccordionDetails>
+        </Accordion>
+
+        {/* Filtro de Sequências */}
+        <Accordion expanded={expandedFilters.includes('sequencias')} onChange={handleAccordionChange('sequencias')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={usarSequencias}
+                  onChange={(e) => setUsarSequencias(e.target.checked)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              }
+              label="Filtro por Sequências Consecutivas"
+              sx={{ mr: 2 }}
+            />
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={2}>
+              <Grid size={{xs:12, md:6}}>
+                <TextField
+                  fullWidth
+                  label="Sequência de 2 - Mínimo"
+                  type="number"
+                  value={filtros.seqDoisMinimo || ''}
+                  onChange={(e) => handleFiltroChange('seqDoisMinimo', e.target.value ? parseInt(e.target.value) : undefined)}
+                  disabled={!usarSequencias}
+                />
+              </Grid>
+              <Grid size={{xs:12, md:6}}>
+                <TextField
+                  fullWidth
+                  label="Sequência de 2 - Máximo"
+                  type="number"
+                  value={filtros.seqDoisMaximo || ''}
+                  onChange={(e) => handleFiltroChange('seqDoisMaximo', e.target.value ? parseInt(e.target.value) : undefined)}
+                  disabled={!usarSequencias}
+                />
+              </Grid>
+              <Grid size={{xs:12, md:6}}>
+                <TextField
+                  fullWidth
+                  label="Sequência de 3 - Mínimo"
+                  type="number"
+                  value={filtros.seqTresMinimo || ''}
+                  onChange={(e) => handleFiltroChange('seqTresMinimo', e.target.value ? parseInt(e.target.value) : undefined)}
+                  disabled={!usarSequencias}
+                />
+              </Grid>
+              <Grid size={{xs:12, md:6}}>
+                <TextField
+                  fullWidth
+                  label="Sequência de 3 - Máximo"
+                  type="number"
+                  value={filtros.seqTresMaximo || ''}
+                  onChange={(e) => handleFiltroChange('seqTresMaximo', e.target.value ? parseInt(e.target.value) : undefined)}
+                  disabled={!usarSequencias}
+                />
+              </Grid>
+            </Grid>
+          </AccordionDetails>
+        </Accordion>
+
+        {/* Filtro de Pontos */}
+        <Accordion expanded={expandedFilters.includes('pontos')} onChange={handleAccordionChange('pontos')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={usarPontos}
+                  onChange={(e) => setUsarPontos(e.target.checked)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              }
+              label="Filtro por Pontos em Relação ao Último Sorteio"
+              sx={{ mr: 2 }}
+            />
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={2}>
+              <Grid size={{xs:12, md:6}}>
+                <TextField
+                  fullWidth
+                  label="Pontos Mínimo"
+                  type="number"
+                  value={filtros.pontosMinimo || ''}
+                  onChange={(e) => handleFiltroChange('pontosMinimo', e.target.value ? parseInt(e.target.value) : undefined)}
+                  disabled={!usarPontos}
+                />
+              </Grid>
+              <Grid size={{xs:12, md:6}}>
+                <TextField
+                  fullWidth
+                  label="Pontos Máximo"
+                  type="number"
+                  value={filtros.pontosMaximo || ''}
+                  onChange={(e) => handleFiltroChange('pontosMaximo', e.target.value ? parseInt(e.target.value) : undefined)}
+                  disabled={!usarPontos}
+                />
+              </Grid>
+            </Grid>
+          </AccordionDetails>
+        </Accordion>
+
+        {/* Filtro de Linha/Coluna */}
+        <Accordion expanded={expandedFilters.includes('linhacoluna')} onChange={handleAccordionChange('linhacoluna')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={usarLinhaColuna}
+                  onChange={(e) => setUsarLinhaColuna(e.target.checked)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              }
+              label="Filtro por Distribuição Linha/Coluna"
+              sx={{ mr: 2 }}
+            />
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={2}>
+              <Grid size={{xs:12, md:3}}>
+                <TextField
+                  fullWidth
+                  label="Linha Mínimo"
+                  type="number"
+                  value={filtros.linhaMinimo || ''}
+                  onChange={(e) => handleFiltroChange('linhaMinimo', e.target.value ? parseInt(e.target.value) : undefined)}
+                  disabled={!usarLinhaColuna}
+                />
+              </Grid>
+              <Grid size={{xs:12, md:3}}>
+                <TextField
+                  fullWidth
+                  label="Linha Máximo"
+                  type="number"
+                  value={filtros.linhaMaximo || ''}
+                  onChange={(e) => handleFiltroChange('linhaMaximo', e.target.value ? parseInt(e.target.value) : undefined)}
+                  disabled={!usarLinhaColuna}
+                />
+              </Grid>
+              <Grid size={{xs:12, md:3}}>
+                <TextField
+                  fullWidth
+                  label="Coluna Mínimo"
+                  type="number"
+                  value={filtros.colunaMinimo || ''}
+                  onChange={(e) => handleFiltroChange('colunaMinimo', e.target.value ? parseInt(e.target.value) : undefined)}
+                  disabled={!usarLinhaColuna}
+                />
+              </Grid>
+              <Grid size={{xs:12, md:3}}>
+                <TextField
+                  fullWidth
+                  label="Coluna Máximo"
+                  type="number"
+                  value={filtros.colunaMaximo || ''}
+                  onChange={(e) => handleFiltroChange('colunaMaximo', e.target.value ? parseInt(e.target.value) : undefined)}
+                  disabled={!usarLinhaColuna}
+                />
+              </Grid>
+            </Grid>
+          </AccordionDetails>
+        </Accordion>
+
+        {/* Filtro de Já Foi Sorteado */}
+        <Accordion expanded={expandedFilters.includes('sorteado')} onChange={handleAccordionChange('sorteado')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={usarSorteado}
+                  onChange={(e) => setUsarSorteado(e.target.checked)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              }
+              label="Filtro por Resultado Já Sorteado"
+              sx={{ mr: 2 }}
+            />
+          </AccordionSummary>
+          <AccordionDetails>
+            <FormControl fullWidth disabled={!usarSorteado}>
+              <InputLabel>Já foi sorteado?</InputLabel>
+              <Select
+                value={filtros.jaFoiSorteado !== undefined ? (filtros.jaFoiSorteado ? 'sim' : 'nao') : ''}
+                onChange={(e) => {
+                  const valor = e.target.value;
+                  handleFiltroChange('jaFoiSorteado', valor === 'sim' ? true : valor === 'nao' ? false : undefined);
+                }}
+              >
+                <MenuItem value="">Qualquer</MenuItem>
+                <MenuItem value="sim">Sim</MenuItem>
+                <MenuItem value="nao">Não</MenuItem>
+              </Select>
+            </FormControl>
+          </AccordionDetails>
+        </Accordion>
+
+        <Divider sx={{ my: 3 }} />
+
+        {/* Botões de Ação */}
+        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<SearchIcon />}
+            onClick={buscarSugestoes}
+            disabled={loading}
+            size="large"
+          >
+            Buscar Sugestões
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            startIcon={<ClearIcon />}
+            onClick={limparFiltros}
+            size="large"
+          >
+            Limpar Filtros
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* Resultados */}
+      {loading && (
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+          <CircularProgress />
+        </Box>
+      )}
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      {!loading && !error && resultados.length > 0 && (
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Resultados Encontrados ({resultados.length})
+          </Typography>
+          <Grid container spacing={3}>
+            {resultados.map((resultado, index) => (
+              <Grid size={{ xs: 12, md: 6, lg: 4 }} key={index}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Sugestão {index + 1}
+                    </Typography>
+                    {renderNumeros(resultado)}
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="body2" color="textSecondary">
+                        Soma: {resultado.soma} | Pares: {resultado.pares ?? 0} | Ímpares: {15 - (resultado.pares ?? 0)}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        Seq2: {resultado.seq_dois} | Seq3: {resultado.seq_tres} | Pontos: {resultado.pontos}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        Linha: {resultado.linha} | Coluna: {resultado.coluna} | Sorteado: {resultado.sorteado ? 'Sim' : 'Não'}
+                      </Typography>
+                    </Box>
+                    <Button 
+                      variant="outlined" 
+                      color="primary" 
+                      size="small" 
+                      sx={{ mt: 2 }}
+                      onClick={() => {
+                        const numeros = resultado.sequencia
+                          ?.match(/\d{2}/g)
+                          ?.map(Number)
+                          .sort((a, b) => a - b) || [];
+                        navigator.clipboard.writeText(numeros.join(', '));
+                      }}
+                    >
+                      Copiar números
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Paper>
+      )}
+
+      {!loading && !error && resultados.length === 0 && filtros.somaMinima !== undefined && (
+        <Alert severity="info">
+          Nenhum resultado encontrado com os filtros aplicados. Tente ajustar os critérios de busca.
+        </Alert>
+      )}
+    </Box>
+  );
+};
 
 export default SugestoesPersonalizadas;
 

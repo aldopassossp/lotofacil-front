@@ -1,34 +1,48 @@
 export interface FiltroSugestaoDTO {
     // Faixas numéricas (min/max)
-    pontosMin?: number;
-    pontosMax?: number;
+    pontosMinimo?: number;
+    pontosMaximo?: number;
 
-    somaMin?: number;
-    somaMax?: number;
+    somaMinima?: number;
+    somaMaxima?: number;
 
-    paresMin?: number;
-    paresMax?: number;
-
-    seqDoisMin?: number;
-    seqDoisMax?: number;
-
-    seqTresMin?: number;
-    seqTresMax?: number;
-
-    seqQuatroMin?: number;
-    seqQuatroMax?: number;
+    paresMinimo?: number;
+    paresMaximo?: number;
     
-    seqCincoMin?: number;
-    seqCincoMax?: number;
+    imparesMinimo?: number;
+    imparesMaximo?: number;
+
+    seqDoisMinimo?: number;
+    seqDoisMaximo?: number;
+
+    seqTresMinimo?: number;
+    seqTresMaximo?: number;
+
+    seqQuatroMinimo?: number;
+    seqQuatroMaximo?: number;
     
-    seqSeisMin?: number;
-    seqSeisMax?: number;
+    seqCincoMinimo?: number;
+    seqCincoMaximo?: number;
     
-    seqSeteMin?: number;
-    seqSeteMax?: number;
+    seqSeisMinimo?: number;
+    seqSeisMaximo?: number;
     
-    seqOitoMin?: number;
-    seqOitoMax?: number;
+    seqSeteMinimo?: number;
+    seqSeteMaximo?: number;
+    
+    seqOitoMinimo?: number;
+    seqOitoMaximo?: number;
+
+    linhaMinimo?: number;
+    linhaMaximo?: number;
+
+    colunaMinimo?: number;
+    colunaMaximo?: number;
+
+    jaFoiSorteado?: number;
+
+    numerosObrigatorios: [];
+    numerosProibidos: [];
 
     // Listas de valores exatos
     linhas?: string[]; // Lista de padrões de linha (ex: "55500")
