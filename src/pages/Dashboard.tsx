@@ -28,6 +28,7 @@ import dashboardService from '../services/dashboard/dashboardService';
 import { ConcursoSomaDTO } from '../dto/dashboard/ConcursoSomaDTO';
 import { ConcursoParesDTO } from '../dto/dashboard/ConcursoParesDTO';
 import { ValorContagemDTO } from '../dto/dashboard/ValorContagemDTO';
+import { ContagemLinhaDTO } from '../dto/dashboard/ContagemLinhaDTO';
 
 const Dashboard: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
@@ -41,8 +42,8 @@ const Dashboard: React.FC = () => {
     const [contagemSeqDois, setContagemSeqDois] = useState<ValorContagemDTO[]>([]);
     const [contagemSeqTres, setContagemSeqTres] = useState<ValorContagemDTO[]>([]);
     const [contagemSeqQuatro, setContagemSeqQuatro] = useState<ValorContagemDTO[]>([]);
-    const [ocorrenciaLinha, setOcorrenciaLinha] = useState<ValorContagemDTO[]>([]);
-    const [ocorrenciaColuna, setOcorrenciaColuna] = useState<ValorContagemDTO[]>([]);
+    const [ocorrenciaLinha, setOcorrenciaLinha] = useState<ContagemLinhaDTO[]>([]);
+    const [ocorrenciaColuna, setOcorrenciaColuna] = useState<ContagemLinhaDTO[]>([]);
 
     const fetchData = useCallback(async (n: number) => {
         setLoading(true);
@@ -51,12 +52,12 @@ const Dashboard: React.FC = () => {
             const [somaRes, paresRes, freqNumRes, seqDoisRes, seqTresRes, seqQuatroRes, linhaRes, colunaRes] = await Promise.all([
                 dashboardService.getSomaUltimosN(n),
                 dashboardService.getParesUltimosN(n),
-                dashboardService.getFrequenciaNumerosUltimosN(n > 50 ? n : 100), // Use larger N for frequency
+                dashboardService.getFrequenciaNumerosUltimosN(n > 9 ? n : 100), // Use larger N for frequency
                 dashboardService.getContagemSequenciaUltimosN('seq_dois', n),
                 dashboardService.getContagemSequenciaUltimosN('seq_tres', n),
                 dashboardService.getContagemSequenciaUltimosN('seq_quatro', n),
-                dashboardService.getOcorrenciaLinhaColunaUltimosN('linha', n),
-                dashboardService.getOcorrenciaLinhaColunaUltimosN('coluna', n),
+                dashboardService.getOcorrenciaLinhaUltimosN(n),
+                dashboardService.getOcorrenciaColunaUltimosN(n),
             ]);
 
             setSomaData(somaRes.sort((a, b) => (a.idSorteados ?? 0) - (b.idSorteados ?? 0))); // Sort for chart
@@ -154,7 +155,7 @@ const Dashboard: React.FC = () => {
                     {/* Frequencia Numeros Chart */}
                     <Grid size={{xs:12}}>
                         <Paper sx={{ p: 2, height: 400 }}>
-                             <Typography variant="h6" gutterBottom>Frequência dos Números (Últimos {numResultados > 50 ? numResultados : 100})</Typography>
+                             <Typography variant="h6" gutterBottom>Frequência dos Números (Últimos {numResultados > 9 ? numResultados : 100})</Typography>
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={formatFrequenciaData(frequenciaNumeros)} margin={{ top: 5, right: 20, bottom: 40, left: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" />
@@ -196,7 +197,7 @@ const Dashboard: React.FC = () => {
                         <Paper sx={{ p: 2 }}>
                             <Typography variant="h6" gutterBottom>Top 10 Linhas (Últimos {numResultados})</Typography>
                             {ocorrenciaLinha.slice(0, 10).map(item => (
-                                <Typography key={item.valor} variant="body2">{item.valor}: {item.contagem}</Typography>
+                                <Typography key={item.linha} variant="body2">{item.linha}: {item.ocorrencia}</Typography>
                             ))}
                         </Paper>
                     </Grid>
@@ -204,7 +205,7 @@ const Dashboard: React.FC = () => {
                         <Paper sx={{ p: 2 }}>
                             <Typography variant="h6" gutterBottom>Top 10 Colunas (Últimos {numResultados})</Typography>
                             {ocorrenciaColuna.slice(0, 10).map(item => (
-                                <Typography key={item.valor} variant="body2">{item.valor}: {item.contagem}</Typography>
+                                <Typography key={item.linha} variant="body2">{item.linha}: {item.ocorrencia}</Typography>
                             ))}
                         </Paper>
                     </Grid>

@@ -2,6 +2,7 @@ import api from '../api';
 import { ConcursoSomaDTO } from '../../dto/dashboard/ConcursoSomaDTO';
 import { ConcursoParesDTO } from '../../dto/dashboard/ConcursoParesDTO';
 import { ValorContagemDTO } from '../../dto/dashboard/ValorContagemDTO';
+import { ContagemLinhaDTO } from '../../dto/dashboard/ContagemLinhaDTO';
 
 const dashboardService = {
     getSomaUltimosN: async (n: number): Promise<ConcursoSomaDTO[]> => {
@@ -24,8 +25,13 @@ const dashboardService = {
         return response.data;
     },
     
-    getOcorrenciaLinhaColunaUltimosN: async (tipo: string, n: number): Promise<ValorContagemDTO[]> => {
-        const response = await api.get(`/dashboard/ocorrencia-linha-coluna/${tipo}?n=${n}`);
+    getOcorrenciaLinhaUltimosN: async (n: number): Promise<ContagemLinhaDTO[]> => {
+        const response = await api.get(`/dashboard/ocorrencias-linha/${n}`);
+        return response.data;
+    },
+
+    getOcorrenciaColunaUltimosN: async (n: number): Promise<ContagemLinhaDTO[]> => {
+        const response = await api.get(`/dashboard/ocorrencias-coluna/${n}`);
         return response.data;
     },
 };
