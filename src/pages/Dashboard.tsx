@@ -53,9 +53,9 @@ const Dashboard: React.FC = () => {
                 dashboardService.getSomaUltimosN(n),
                 dashboardService.getParesUltimosN(n),
                 dashboardService.getFrequenciaNumerosUltimosN(n > 9 ? n : 100), // Use larger N for frequency
-                dashboardService.getContagemSequenciaUltimosN('seq_dois', n),
-                dashboardService.getContagemSequenciaUltimosN('seq_tres', n),
-                dashboardService.getContagemSequenciaUltimosN('seq_quatro', n),
+                dashboardService.getContagemSequenciaDoisUltimosN(n),
+                dashboardService.getContagemSequenciaTresUltimosN(n),
+                dashboardService.getContagemSequenciaQuatroUltimosN(n),
                 dashboardService.getOcorrenciaLinhaUltimosN(n),
                 dashboardService.getOcorrenciaColunaUltimosN(n),
             ]);
@@ -112,6 +112,9 @@ const Dashboard: React.FC = () => {
                     <MenuItem value={50}>50</MenuItem>
                     <MenuItem value={100}>100</MenuItem>
                     <MenuItem value={200}>200</MenuItem>
+                    <MenuItem value={500}>500</MenuItem>
+                    <MenuItem value={1000}>1000</MenuItem>
+                    <MenuItem value={5000000}>Todos</MenuItem>
                 </Select>
             </FormControl>
 
@@ -169,29 +172,80 @@ const Dashboard: React.FC = () => {
                     </Grid>
 
                     {/* Outras Estatísticas (Sequências, Linha/Coluna) - Exemplo com listas */}
-                    <Grid size={{xs:12, md:4}}>
-                        <Paper sx={{ p: 2 }}>
-                            <Typography variant="h6" gutterBottom>Contagem Seq. 2 (Últimos {numResultados})</Typography>
-                            {contagemSeqDois.slice(0, 5).map(item => (
-                                <Typography key={item.valor} variant="body2">{item.valor}: {item.contagem}</Typography>
-                            ))}
-                        </Paper>
+                    <Grid size={{ xs: 12, md: 4 }}>
+                    <Paper sx={{ p: 2 }}>
+                        <Typography variant="h6" gutterBottom>
+                        Contagem Seq. 2 (Últimos {numResultados})
+                        </Typography>
+
+                        {contagemSeqDois.slice(0, 5).map(item => (
+                        <Box
+                            key={item.valor}
+                            sx={{
+                            display: "flex",
+                            gap: 1,                 // espaço pequeno
+                            fontFamily: "monospace" // garante alinhamento fixo
+                            }}
+                        >
+                            <Typography variant="body2" sx={{ minWidth: "1px" }}>
+                            {String(item.valor).padStart(2, "0")}:
+                            </Typography>
+                            <Typography variant="body2" sx={{ textAlign: "right", minWidth: "30px" }}>
+                            {item.contagem}
+                            </Typography>
+                        </Box>
+                        ))}
+                    </Paper>
                     </Grid>
-                     <Grid size={{xs:12, md:4}}>
-                        <Paper sx={{ p: 2 }}>
-                            <Typography variant="h6" gutterBottom>Contagem Seq. 3 (Últimos {numResultados})</Typography>
-                            {contagemSeqTres.slice(0, 5).map(item => (
-                                <Typography key={item.valor} variant="body2">{item.valor}: {item.contagem}</Typography>
-                            ))}
-                        </Paper>
+                    <Grid size={{ xs: 12, md: 4 }}>
+                    <Paper sx={{ p: 2 }}>
+                        <Typography variant="h6" gutterBottom>
+                        Contagem Seq. 3 (Últimos {numResultados})
+                        </Typography>
+
+                        {contagemSeqTres.slice(0, 5).map(item => (
+                        <Box
+                            key={item.valor}
+                            sx={{
+                            display: "flex",
+                            gap: 1,                 // espaço pequeno
+                            fontFamily: "monospace" // garante alinhamento fixo
+                            }}
+                        >
+                            <Typography variant="body2" sx={{ minWidth: "1px" }}>
+                            {String(item.valor).padStart(2, "0")}:
+                            </Typography>
+                            <Typography variant="body2" sx={{ textAlign: "right", minWidth: "30px" }}>
+                            {item.contagem}
+                            </Typography>
+                        </Box>
+                        ))}
+                    </Paper>
                     </Grid>
-                     <Grid size={{xs:12, md:4}}>
-                        <Paper sx={{ p: 2 }}>
-                            <Typography variant="h6" gutterBottom>Contagem Seq. 4 (Últimos {numResultados})</Typography>
-                            {contagemSeqQuatro.slice(0, 5).map(item => (
-                                <Typography key={item.valor} variant="body2">{item.valor}: {item.contagem}</Typography>
-                            ))}
-                        </Paper>
+                    <Grid size={{ xs: 12, md: 4 }}>
+                    <Paper sx={{ p: 2 }}>
+                        <Typography variant="h6" gutterBottom>
+                        Contagem Seq. 4 (Últimos {numResultados})
+                        </Typography>
+
+                        {contagemSeqQuatro.slice(0, 5).map(item => (
+                        <Box
+                            key={item.valor}
+                            sx={{
+                            display: "flex",
+                            gap: 1,                 // espaço pequeno
+                            fontFamily: "monospace" // garante alinhamento fixo
+                            }}
+                        >
+                            <Typography variant="body2" sx={{ minWidth: "1px" }}>
+                            {String(item.valor).padStart(2, "0")}:
+                            </Typography>
+                            <Typography variant="body2" sx={{ textAlign: "right", minWidth: "30px" }}>
+                            {item.contagem}
+                            </Typography>
+                        </Box>
+                        ))}
+                    </Paper>
                     </Grid>
                      <Grid size={{xs:12, md:6}}>
                         <Paper sx={{ p: 2 }}>

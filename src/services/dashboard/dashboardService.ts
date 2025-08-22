@@ -20,8 +20,18 @@ const dashboardService = {
         return response.data;
     },
     
-    getContagemSequenciaUltimosN: async (tipo: string, n: number): Promise<ValorContagemDTO[]> => {
-        const response = await api.get(`/dashboard/contagem-sequencia/${tipo}?n=${n}`);
+    getContagemSequenciaDoisUltimosN: async (n: number): Promise<ValorContagemDTO[]> => {
+        const response = await api.get(`/dashboard/contagem-sequencia-dois/${n}`);
+        return response.data;
+    },
+
+    getContagemSequenciaTresUltimosN: async (n: number): Promise<ValorContagemDTO[]> => {
+        const response = await api.get(`/dashboard/contagem-sequencia-tres/${n}`);
+        return response.data;
+    },
+
+    getContagemSequenciaQuatroUltimosN: async (n: number): Promise<ValorContagemDTO[]> => {
+        const response = await api.get(`/dashboard/contagem-sequencia-quatro/${n}`);
         return response.data;
     },
     
