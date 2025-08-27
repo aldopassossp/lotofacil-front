@@ -415,66 +415,119 @@ const buscarSugestoes = async () => {
           </AccordionDetails>
         </Accordion>
 
-        {/* Filtro de Linha/Coluna */}
-        <Accordion expanded={expandedFilters.includes('linhacoluna')} onChange={handleAccordionChange('linhacoluna')}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={usarLinhaColuna}
-                  onChange={(e) => setUsarLinhaColuna(e.target.checked)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              }
-              label="Filtro por Distribuição Linha/Coluna"
-              sx={{ mr: 2 }}
-            />
-          </AccordionSummary>
-          <AccordionDetails>
-            <Grid container spacing={2}>
-              <Grid size={{xs:12, md:3}}>
-                <TextField
-                  fullWidth
-                  label="Linha Mínimo"
-                  type="number"
-                  value={filtros.linhaMinimo || ''}
-                  onChange={(e) => handleFiltroChange('linhaMinimo', e.target.value ? parseInt(e.target.value) : undefined)}
-                  disabled={!usarLinhaColuna}
-                />
-              </Grid>
-              <Grid size={{xs:12, md:3}}>
-                <TextField
-                  fullWidth
-                  label="Linha Máximo"
-                  type="number"
-                  value={filtros.linhaMaximo || ''}
-                  onChange={(e) => handleFiltroChange('linhaMaximo', e.target.value ? parseInt(e.target.value) : undefined)}
-                  disabled={!usarLinhaColuna}
-                />
-              </Grid>
-              <Grid size={{xs:12, md:3}}>
-                <TextField
-                  fullWidth
-                  label="Coluna Mínimo"
-                  type="number"
-                  value={filtros.colunaMinimo || ''}
-                  onChange={(e) => handleFiltroChange('colunaMinimo', e.target.value ? parseInt(e.target.value) : undefined)}
-                  disabled={!usarLinhaColuna}
-                />
-              </Grid>
-              <Grid size={{xs:12, md:3}}>
-                <TextField
-                  fullWidth
-                  label="Coluna Máximo"
-                  type="number"
-                  value={filtros.colunaMaximo || ''}
-                  onChange={(e) => handleFiltroChange('colunaMaximo', e.target.value ? parseInt(e.target.value) : undefined)}
-                  disabled={!usarLinhaColuna}
-                />
-              </Grid>
-            </Grid>
-          </AccordionDetails>
-        </Accordion>
+{/* Filtro de Linha/Coluna */}
+<Accordion expanded={expandedFilters.includes('linhacoluna')} onChange={handleAccordionChange('linhacoluna')}>
+  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+    <FormControlLabel
+      control={
+        <Switch
+          checked={usarLinhaColuna}
+          onChange={(e) => setUsarLinhaColuna(e.target.checked)}
+          onClick={(e) => e.stopPropagation()}
+        />
+      }
+      label="Modelos de Linhas/Colunas"
+      sx={{ mr: 2 }}
+    />
+  </AccordionSummary>
+  <AccordionDetails>
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+      {[
+        { id: 1, label: "Linha 1", pattern: [1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+        { id: 2, label: "Coluna 1", pattern: [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0] },
+        { id: 3, label: "Diagonal", pattern: [1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1] }
+      ].map(modelo => (
+        <Box
+          key={modelo.id}
+          sx={{
+            border: filtros.linhasSelecionadas?.includes(modelo.id) ? "2px solid #1976d2" : "1px solid gray",
+            borderRadius: 2,
+            p: 1,
+            cursor: "pointer"
+          }}
+          onClick={() => {
+            setFiltros(prev => {
+              const selecionados = prev.linhasSelecionadas || [];
+              return {
+                ...prev,
+                linhasSelecionadas: selecionados.includes(modelo.id)
+                  ? selecionados.filter(m => m !== modelo.id)
+                  : [...selecionados, modelo.id]
+              };
+            });
+          }}
+        >
+          <Typography variant="caption" align="center">{modelo.label}</Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 20px)', gap: 0.5, mt: 1 }}>
+            {modelo.pattern.map((v, idx) => (
+              <Box key={idx} sx={{
+                width: 18, height: 18,
+                border: '1px solid #999',
+                backgroundColor: v ? "#1976d2" : "transparent"
+              }} />
+            ))}
+          </Box>
+        </Box>
+      ))}
+    </Box>
+
+    <FormControlLabel
+      control={
+        <Switch
+          checked={filtros.incluirLinhas ?? true}
+          onChange={(e) => handleFiltroChange("incluirLinhas", e.target.checked)}
+        />
+      }
+      label={filtros.incluirLinhas ? "Deve existir" : "Não deve existir"}
+    />
+  </AccordionDetails>
+</Accordion>
+
+{/* Escolha de números obrigatórios */}
+<Accordion expanded={expandedFilters.includes('numerosObrigatorios')} onChange={handleAccordionChange('numerosObrigatorios')}>
+  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+    <FormControlLabel
+      control={
+        <Switch
+          checked={usarNumerosEspecificos}
+          onChange={(e) => setUsarNumerosEspecificos(e.target.checked)}
+          onClick={(e) => e.stopPropagation()}
+        />
+      }
+      label="Números Obrigatórios"
+      sx={{ mr: 2 }}
+    />
+  </AccordionSummary>
+  <AccordionDetails>
+    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 1 }}>
+      {Array.from({ length: 25 }, (_, i) => i + 1).map(numero => (
+        <Chip
+          key={numero}
+          label={numero}
+          color={filtros.numerosObrigatorios.includes(numero) ? "primary" : "default"}
+          onClick={() => {
+            setFiltros(prev => {
+              const selecionados = prev.numerosObrigatorios;
+              return {
+                ...prev,
+                numerosObrigatorios: selecionados.includes(numero)
+                  ? selecionados.filter(n => n !== numero)
+                  : [...selecionados, numero]
+              };
+            });
+          }}
+          sx={{
+            borderRadius: '50%',
+            width: 38,
+            height: 38,
+            fontSize: '0.8rem',
+            fontWeight: 'bold'
+          }}
+        />
+      ))}
+    </Box>
+  </AccordionDetails>
+</Accordion>
 
         {/* Filtro de Já Foi Sorteado */}
         <Accordion expanded={expandedFilters.includes('sorteado')} onChange={handleAccordionChange('sorteado')}>

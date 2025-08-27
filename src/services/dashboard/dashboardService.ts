@@ -3,6 +3,7 @@ import { ConcursoSomaDTO } from '../../dto/dashboard/ConcursoSomaDTO';
 import { ConcursoParesDTO } from '../../dto/dashboard/ConcursoParesDTO';
 import { ValorContagemDTO } from '../../dto/dashboard/ValorContagemDTO';
 import { ContagemLinhaDTO } from '../../dto/dashboard/ContagemLinhaDTO';
+import { AtrasoNumeroDTO } from '../../dto/dashboard/AtrasoNumeroDTO';
 
 const dashboardService = {
     getSomaUltimosN: async (n: number): Promise<ConcursoSomaDTO[]> => {
@@ -42,6 +43,11 @@ const dashboardService = {
 
     getOcorrenciaColunaUltimosN: async (n: number): Promise<ContagemLinhaDTO[]> => {
         const response = await api.get(`/dashboard/ocorrencias-coluna/${n}`);
+        return response.data;
+    },
+
+    getUltimosAtrasos: async (n: number): Promise<AtrasoNumeroDTO[]> => {
+        const response = await api.get(`/dashboard/atraso/`);
         return response.data;
     },
 };

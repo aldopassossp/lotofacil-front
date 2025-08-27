@@ -29,6 +29,7 @@ import { ConcursoSomaDTO } from '../dto/dashboard/ConcursoSomaDTO';
 import { ConcursoParesDTO } from '../dto/dashboard/ConcursoParesDTO';
 import { ValorContagemDTO } from '../dto/dashboard/ValorContagemDTO';
 import { ContagemLinhaDTO } from '../dto/dashboard/ContagemLinhaDTO';
+import { AtrasoNumeroDTO } from '../dto/dashboard/AtrasoNumeroDTO';
 
 const Dashboard: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
@@ -44,12 +45,13 @@ const Dashboard: React.FC = () => {
     const [contagemSeqQuatro, setContagemSeqQuatro] = useState<ValorContagemDTO[]>([]);
     const [ocorrenciaLinha, setOcorrenciaLinha] = useState<ContagemLinhaDTO[]>([]);
     const [ocorrenciaColuna, setOcorrenciaColuna] = useState<ContagemLinhaDTO[]>([]);
+    const [ultimosAtrasos, setUltimosAtrasos] = useState<AtrasoNumeroDTO[]>([]);
 
     const fetchData = useCallback(async (n: number) => {
         setLoading(true);
         setError(null);
         try {
-            const [somaRes, paresRes, freqNumRes, seqDoisRes, seqTresRes, seqQuatroRes, linhaRes, colunaRes] = await Promise.all([
+            const [somaRes, paresRes, freqNumRes, seqDoisRes, seqTresRes, seqQuatroRes, linhaRes, colunaRes, atrasosRes] = await Promise.all([
                 dashboardService.getSomaUltimosN(n),
                 dashboardService.getParesUltimosN(n),
                 dashboardService.getFrequenciaNumerosUltimosN(n > 9 ? n : 100), // Use larger N for frequency
@@ -58,6 +60,7 @@ const Dashboard: React.FC = () => {
                 dashboardService.getContagemSequenciaQuatroUltimosN(n),
                 dashboardService.getOcorrenciaLinhaUltimosN(n),
                 dashboardService.getOcorrenciaColunaUltimosN(n),
+                dashboardService.getUltimosAtrasos(n),
             ]);
 
             setSomaData(somaRes.sort((a, b) => (a.idSorteados ?? 0) - (b.idSorteados ?? 0))); // Sort for chart
@@ -68,6 +71,7 @@ const Dashboard: React.FC = () => {
             setContagemSeqQuatro(seqQuatroRes);
             setOcorrenciaLinha(linhaRes);
             setOcorrenciaColuna(colunaRes);
+            setUltimosAtrasos(atrasosRes);
 
         } catch (err: any) {
             console.error("Erro ao buscar dados do dashboard:", err);
@@ -247,7 +251,7 @@ const Dashboard: React.FC = () => {
                         ))}
                     </Paper>
                     </Grid>
-                     <Grid size={{xs:12, md:6}}>
+                     <Grid size={{xs:12, md:4}}>
                         <Paper sx={{ p: 2 }}>
                             <Typography variant="h6" gutterBottom>Top 10 Linhas (Últimos {numResultados})</Typography>
                             {ocorrenciaLinha.slice(0, 10).map(item => (
@@ -255,7 +259,7 @@ const Dashboard: React.FC = () => {
                             ))}
                         </Paper>
                     </Grid>
-                     <Grid size={{xs:12, md:6}}>
+                     <Grid size={{xs:12, md:4}}>
                         <Paper sx={{ p: 2 }}>
                             <Typography variant="h6" gutterBottom>Top 10 Colunas (Últimos {numResultados})</Typography>
                             {ocorrenciaColuna.slice(0, 10).map(item => (
@@ -263,7 +267,14 @@ const Dashboard: React.FC = () => {
                             ))}
                         </Paper>
                     </Grid>
-
+                     <Grid size={{xs:12, md:4}}>
+                        <Paper sx={{ p: 2 }}>
+                            <Typography variant="h6" gutterBottom>Atrasos atualizados </Typography>
+                            {ultimosAtrasos.slice(0, 10).map(item => (
+                                <Typography key={item.idAtraso} variant="body2">{String(item.idAtraso).padStart(2, "0")}: {item.contagem} - {item.ultimo}</Typography>
+                            ))}
+                        </Paper>
+                    </Grid>
                 </Grid>
             )}
         </Box>

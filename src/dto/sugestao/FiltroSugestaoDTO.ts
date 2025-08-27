@@ -41,8 +41,8 @@ export interface FiltroSugestaoDTO {
 
     jaFoiSorteado?: number;
 
-    numerosObrigatorios: [];
-    numerosProibidos: [];
+    numerosObrigatorios: number[];
+    numerosProibidos: number[];
 
     // Listas de valores exatos
     linhas?: string[]; // Lista de padrões de linha (ex: "55500")
@@ -54,4 +54,9 @@ export interface FiltroSugestaoDTO {
     // Paginação e Limite
     page?: number; // Número da página (default 0)
     size?: number; // Tamanho da página (default 20)
+
+    linhasSelecionadas?: number[];
+    colunasSelecionadas?: number[];
+    incluirLinhas?: boolean;   // true = deve existir, false = não deve existir
+    incluirColunas?: boolean;  // true = deve existir, false = não deve existir
 }
