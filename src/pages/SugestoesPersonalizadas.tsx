@@ -15,29 +15,34 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Checkbox,
   FormControlLabel,
   Accordion,
   AccordionSummary,
   AccordionDetails,
   Divider,
   Slider,
-  Switch
+  Switch,
+  OutlinedInput
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import { FiltroSugestaoDTO } from '../dto/sugestao/FiltroSugestaoDTO';
+import dashboardService from '../services/dashboard/dashboardService';
 import sugestaoService from '../services/sugestao/sugestaoService';
 import { Todos } from '../entity/Todos';
 
 const SugestoesPersonalizadas: React.FC = () => {
   const [filtros, setFiltros] = useState<FiltroSugestaoDTO>({
+    pontosMinimo: undefined,
+    pontosMaximo: undefined,
     somaMinima: undefined,
     somaMaxima: undefined,
     paresMinimo: undefined,
     paresMaximo: undefined,
+    imparesMinimo: undefined,
+    imparesMaximo: undefined,
     seqDoisMinimo: undefined,
     seqDoisMaximo: undefined,
     seqTresMinimo: undefined,
@@ -52,21 +57,54 @@ const SugestoesPersonalizadas: React.FC = () => {
     seqSeteMaximo: undefined,
     seqOitoMinimo: undefined,
     seqOitoMaximo: undefined,
-    pontosMinimo: undefined,
-    pontosMaximo: undefined,
-    linhaMinimo: undefined,
-    linhaMaximo: undefined,
-    colunaMinimo: undefined,
-    colunaMaximo: undefined,
     jaFoiSorteado: undefined,
     numerosObrigatorios: [],
-    numerosProibidos: []
+    numerosProibidos: [],
+    linhas: [],
+    colunas: [],
+    linhasSelecionadas: [],
+    colunasSelecionadas: []
   });
 
+  const [linhasDisponiveis, setLinhasDisponiveis] = useState<string[]>([]);
+  const [colunasDisponiveis, setColunasDisponiveis] = useState<string[]>([]);
   const [resultados, setResultados] = useState<Todos[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedFilters, setExpandedFilters] = useState<string[]>(["basicos"]);
+
+  useEffect(() => {
+  const carregarDados = async () => {
+    try {
+      const [linhasResp, colunasResp] = await Promise.all([
+        dashboardService.getOcorrenciaTodasLinhas(),
+        dashboardService.getOcorrenciaTodasColunas(),
+      ]);
+
+      // Normaliza: transforma qualquer formato em string[]
+      const extrairRotulos = (resp: any): string[] => {
+        const data = resp?.data ?? resp;          // depende do seu service/axios
+        if (!Array.isArray(data)) return [];
+        return data.map((item: any) => {
+          if (typeof item === 'string') return item;
+          if (typeof item === 'number') return String(item);
+          if (item?.valor != null) return String(item.valor);
+          if (item?.linha != null) return String(item.linha);
+          if (item?.coluna != null) return String(item.coluna);
+          return String(item); // fallback
+        });
+      };
+
+      setLinhasDisponiveis(extrairRotulos(linhasResp));
+      setColunasDisponiveis(extrairRotulos(colunasResp));
+    } catch (error) {
+      console.error("Erro ao carregar linhas/colunas", error);
+    }
+    };
+
+    carregarDados();
+  }, []);
+
 
   // Estados para controle de filtros avançados
   const [usarSoma, setUsarSoma] = useState(false);
@@ -151,13 +189,11 @@ const buscarSugestoes = async () => {
       seqOitoMaximo: undefined,
       pontosMinimo: undefined,
       pontosMaximo: undefined,
-      linhaMinimo: undefined,
-      linhaMaximo: undefined,
-      colunaMinimo: undefined,
-      colunaMaximo: undefined,
       jaFoiSorteado: undefined,
       numerosObrigatorios: [],
-      numerosProibidos: []
+      numerosProibidos: [],
+      linhasSelecionadas: [],
+      colunasSelecionadas: []
     });
     
     setUsarSoma(false);
@@ -416,7 +452,10 @@ const buscarSugestoes = async () => {
         </Accordion>
 
 {/* Filtro de Linha/Coluna */}
-<Accordion expanded={expandedFilters.includes('linhacoluna')} onChange={handleAccordionChange('linhacoluna')}>
+<Accordion
+  expanded={expandedFilters.includes("linhacoluna")}
+  onChange={handleAccordionChange("linhacoluna")}
+>
   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
     <FormControlLabel
       control={
@@ -426,60 +465,84 @@ const buscarSugestoes = async () => {
           onClick={(e) => e.stopPropagation()}
         />
       }
-      label="Modelos de Linhas/Colunas"
+      label="Linhas e Colunas"
       sx={{ mr: 2 }}
     />
   </AccordionSummary>
   <AccordionDetails>
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-      {[
-        { id: 1, label: "Linha 1", pattern: [1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-        { id: 2, label: "Coluna 1", pattern: [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0] },
-        { id: 3, label: "Diagonal", pattern: [1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1] }
-      ].map(modelo => (
-        <Box
-          key={modelo.id}
-          sx={{
-            border: filtros.linhasSelecionadas?.includes(modelo.id) ? "2px solid #1976d2" : "1px solid gray",
-            borderRadius: 2,
-            p: 1,
-            cursor: "pointer"
-          }}
-          onClick={() => {
-            setFiltros(prev => {
-              const selecionados = prev.linhasSelecionadas || [];
-              return {
+    <Grid container spacing={2}>
+      {/* Select de Linhas */}
+      <Grid size={{ xs: 12, md: 6 }}>
+        <FormControl fullWidth disabled={!usarLinhaColuna}>
+          <Select
+            multiple
+            displayEmpty
+            value={filtros.linhasSelecionadas ?? []}
+            onChange={(e) =>
+              setFiltros((prev) => ({
                 ...prev,
-                linhasSelecionadas: selecionados.includes(modelo.id)
-                  ? selecionados.filter(m => m !== modelo.id)
-                  : [...selecionados, modelo.id]
-              };
-            });
-          }}
-        >
-          <Typography variant="caption" align="center">{modelo.label}</Typography>
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 20px)', gap: 0.5, mt: 1 }}>
-            {modelo.pattern.map((v, idx) => (
-              <Box key={idx} sx={{
-                width: 18, height: 18,
-                border: '1px solid #999',
-                backgroundColor: v ? "#1976d2" : "transparent"
-              }} />
+                linhasSelecionadas:
+                  typeof e.target.value === "string"
+                    ? e.target.value.split(",")
+                    : e.target.value,
+              }))
+            }
+            input={<OutlinedInput />}
+            renderValue={(selected) => {
+              if ((selected as string[]).length === 0) {
+                return <em>Selecione linhas</em>;
+              }
+              return (selected as string[]).join(", ");
+            }}
+          >
+            <MenuItem disabled value="">
+              <em>Selecione linhas</em>
+            </MenuItem>
+            {linhasDisponiveis.map((linha) => (
+              <MenuItem key={linha} value={linha}>
+                {linha}
+              </MenuItem>
             ))}
-          </Box>
-        </Box>
-      ))}
-    </Box>
+          </Select>
+        </FormControl>
+      </Grid>
 
-    <FormControlLabel
-      control={
-        <Switch
-          checked={filtros.incluirLinhas ?? true}
-          onChange={(e) => handleFiltroChange("incluirLinhas", e.target.checked)}
-        />
-      }
-      label={filtros.incluirLinhas ? "Deve existir" : "Não deve existir"}
-    />
+      {/* Select de Colunas */}
+      <Grid size={{ xs: 12, md: 6 }}>
+        <FormControl fullWidth disabled={!usarLinhaColuna}>
+          <Select
+            multiple
+            displayEmpty
+            value={filtros.colunasSelecionadas ?? []}
+            onChange={(e) =>
+              setFiltros((prev) => ({
+                ...prev,
+                colunasSelecionadas:
+                  typeof e.target.value === "string"
+                    ? e.target.value.split(",")
+                    : e.target.value,
+              }))
+            }
+            input={<OutlinedInput />}
+            renderValue={(selected) => {
+              if ((selected as string[]).length === 0) {
+                return <em>Selecione colunas</em>;
+              }
+              return (selected as string[]).join(", ");
+            }}
+          >
+            <MenuItem disabled value="">
+              <em>Selecione colunas</em>
+            </MenuItem>
+            {colunasDisponiveis.map((coluna) => (
+              <MenuItem key={coluna} value={coluna}>
+                {coluna}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Grid>
+    </Grid>
   </AccordionDetails>
 </Accordion>
 
@@ -659,4 +722,3 @@ const buscarSugestoes = async () => {
 };
 
 export default SugestoesPersonalizadas;
-

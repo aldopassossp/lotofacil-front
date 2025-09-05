@@ -33,12 +33,6 @@ export interface FiltroSugestaoDTO {
     seqOitoMinimo?: number;
     seqOitoMaximo?: number;
 
-    linhaMinimo?: number;
-    linhaMaximo?: number;
-
-    colunaMinimo?: number;
-    colunaMaximo?: number;
-
     jaFoiSorteado?: number;
 
     numerosObrigatorios: number[];
@@ -48,6 +42,9 @@ export interface FiltroSugestaoDTO {
     linhas?: string[]; // Lista de padrões de linha (ex: "55500")
     colunas?: string[]; // Lista de padrões de coluna (ex: "33333")
 
+    linhasSelecionadas: string[];   // NÃO opcional
+    colunasSelecionadas: string[];  // NÃO opcional
+
     // Outros filtros possíveis
     naoIncluirSorteadosAnteriormente?: boolean; // Flag para excluir combinações já sorteadas (todos.sorteado = 0)
 
@@ -55,8 +52,6 @@ export interface FiltroSugestaoDTO {
     page?: number; // Número da página (default 0)
     size?: number; // Tamanho da página (default 20)
 
-    linhasSelecionadas?: number[];
-    colunasSelecionadas?: number[];
     incluirLinhas?: boolean;   // true = deve existir, false = não deve existir
     incluirColunas?: boolean;  // true = deve existir, false = não deve existir
 }

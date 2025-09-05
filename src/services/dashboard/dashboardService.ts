@@ -46,6 +46,16 @@ const dashboardService = {
         return response.data;
     },
 
+    getOcorrenciaTodasLinhas: async (): Promise<ContagemLinhaDTO[]> => {
+        const response = await api.get(`/dashboard/ocorrencias-linha/`);
+        return response.data;
+    },
+
+    getOcorrenciaTodasColunas: async (): Promise<ContagemLinhaDTO[]> => {
+        const response = await api.get(`/dashboard/ocorrencias-coluna/`);
+        return response.data;
+    },
+
     getUltimosAtrasos: async (n: number): Promise<AtrasoNumeroDTO[]> => {
         const response = await api.get(`/dashboard/atraso/`);
         return response.data;
