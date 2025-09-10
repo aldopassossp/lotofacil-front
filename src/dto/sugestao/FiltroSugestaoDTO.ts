@@ -8,30 +8,12 @@ export interface FiltroSugestaoDTO {
 
     paresMinimo?: number;
     paresMaximo?: number;
-    
-    imparesMinimo?: number;
-    imparesMaximo?: number;
 
     seqDoisMinimo?: number;
     seqDoisMaximo?: number;
 
     seqTresMinimo?: number;
     seqTresMaximo?: number;
-
-    seqQuatroMinimo?: number;
-    seqQuatroMaximo?: number;
-    
-    seqCincoMinimo?: number;
-    seqCincoMaximo?: number;
-    
-    seqSeisMinimo?: number;
-    seqSeisMaximo?: number;
-    
-    seqSeteMinimo?: number;
-    seqSeteMaximo?: number;
-    
-    seqOitoMinimo?: number;
-    seqOitoMaximo?: number;
 
     jaFoiSorteado?: number;
 

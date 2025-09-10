@@ -41,22 +41,10 @@ const SugestoesPersonalizadas: React.FC = () => {
     somaMaxima: undefined,
     paresMinimo: undefined,
     paresMaximo: undefined,
-    imparesMinimo: undefined,
-    imparesMaximo: undefined,
     seqDoisMinimo: undefined,
     seqDoisMaximo: undefined,
     seqTresMinimo: undefined,
     seqTresMaximo: undefined,
-    seqQuatroMinimo: undefined,
-    seqQuatroMaximo: undefined,
-    seqCincoMinimo: undefined,
-    seqCincoMaximo: undefined,
-    seqSeisMinimo: undefined,
-    seqSeisMaximo: undefined,
-    seqSeteMinimo: undefined,
-    seqSeteMaximo: undefined,
-    seqOitoMinimo: undefined,
-    seqOitoMaximo: undefined,
     jaFoiSorteado: undefined,
     numerosObrigatorios: [],
     numerosProibidos: [],
@@ -114,6 +102,7 @@ const SugestoesPersonalizadas: React.FC = () => {
   const [usarLinhaColuna, setUsarLinhaColuna] = useState(false);
   const [usarSorteado, setUsarSorteado] = useState(false);
   const [usarNumerosEspecificos, setUsarNumerosEspecificos] = useState(false);
+  const [naoUsarNumerosEspecificos, setNaoUsarNumerosEspecificos] = useState(false);
 
   const handleAccordionChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpandedFilters(prev => 
@@ -171,22 +160,10 @@ const buscarSugestoes = async () => {
       somaMaxima: undefined,
       paresMinimo: undefined,
       paresMaximo: undefined,
-      imparesMinimo: undefined,
-      imparesMaximo: undefined,
       seqDoisMinimo: undefined,
       seqDoisMaximo: undefined,
       seqTresMinimo: undefined,
       seqTresMaximo: undefined,
-      seqQuatroMinimo: undefined,
-      seqQuatroMaximo: undefined,
-      seqCincoMinimo: undefined,
-      seqCincoMaximo: undefined,
-      seqSeisMinimo: undefined,
-      seqSeisMaximo: undefined,
-      seqSeteMinimo: undefined,
-      seqSeteMaximo: undefined,
-      seqOitoMinimo: undefined,
-      seqOitoMaximo: undefined,
       pontosMinimo: undefined,
       pontosMaximo: undefined,
       jaFoiSorteado: undefined,
@@ -203,6 +180,7 @@ const buscarSugestoes = async () => {
     setUsarLinhaColuna(false);
     setUsarSorteado(false);
     setUsarNumerosEspecificos(false);
+    setNaoUsarNumerosEspecificos(false);
   };
 
   const renderNumeros = (todos: Todos) => {
@@ -246,6 +224,98 @@ const buscarSugestoes = async () => {
           <FilterListIcon sx={{ mr: 1 }} />
           <Typography variant="h6">Filtros de Busca</Typography>
         </Box>
+
+{/* Escolha de números obrigatórios */}
+<Accordion expanded={expandedFilters.includes('numerosObrigatorios')} onChange={handleAccordionChange('numerosObrigatorios')}>
+  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+    <FormControlLabel
+      control={
+        <Switch
+          checked={usarNumerosEspecificos}
+          onChange={(e) => setUsarNumerosEspecificos(e.target.checked)}
+          onClick={(e) => e.stopPropagation()}
+        />
+      }
+      label="Números Obrigatórios"
+      sx={{ mr: 2 }}
+    />
+  </AccordionSummary>
+  <AccordionDetails>
+    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 1 }}>
+      {Array.from({ length: 25 }, (_, i) => i + 1).map(numero => (
+        <Chip
+          key={numero}
+          label={numero}
+          color={filtros.numerosObrigatorios.includes(numero) ? "primary" : "default"}
+          onClick={() => {
+            setFiltros(prev => {
+              const selecionados = prev.numerosObrigatorios;
+              return {
+                ...prev,
+                numerosObrigatorios: selecionados.includes(numero)
+                  ? selecionados.filter(n => n !== numero)
+                  : [...selecionados, numero]
+              };
+            });
+          }}
+          sx={{
+            borderRadius: '50%',
+            width: 38,
+            height: 38,
+            fontSize: '0.8rem',
+            fontWeight: 'bold'
+          }}
+        />
+      ))}
+    </Box>
+  </AccordionDetails>
+</Accordion>
+
+{/* Escolha de números proibidos */}
+<Accordion expanded={expandedFilters.includes('numerosProibidos')} onChange={handleAccordionChange('numerosProibidos')}>
+  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+    <FormControlLabel
+      control={
+        <Switch
+          checked={naoUsarNumerosEspecificos}
+          onChange={(e) => setNaoUsarNumerosEspecificos(e.target.checked)}
+          onClick={(e) => e.stopPropagation()}
+        />
+      }
+      label="Números Proibidos"
+      sx={{ mr: 2 }}
+    />
+  </AccordionSummary>
+  <AccordionDetails>
+    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 1 }}>
+      {Array.from({ length: 25 }, (_, i) => i + 1).map(numero => (
+        <Chip
+          key={numero}
+          label={numero}
+          color={filtros.numerosProibidos.includes(numero) ? "primary" : "default"}
+          onClick={() => {
+            setFiltros(prev => {
+              const selecionados = prev.numerosProibidos;
+              return {
+                ...prev,
+                numerosProibidos: selecionados.includes(numero)
+                  ? selecionados.filter(n => n !== numero)
+                  : [...selecionados, numero]
+              };
+            });
+          }}
+          sx={{
+            borderRadius: '50%',
+            width: 38,
+            height: 38,
+            fontSize: '0.8rem',
+            fontWeight: 'bold'
+          }}
+        />
+      ))}
+    </Box>
+  </AccordionDetails>
+</Accordion>
 
         {/* Filtro de Soma */}
         <Accordion expanded={expandedFilters.includes('soma')} onChange={handleAccordionChange('soma')}>
@@ -322,26 +392,6 @@ const buscarSugestoes = async () => {
                   type="number"
                   value={filtros.paresMaximo || ''}
                   onChange={(e) => handleFiltroChange('paresMaximo', e.target.value ? parseInt(e.target.value) : undefined)}
-                  disabled={!usarPares}
-                />
-              </Grid>
-              <Grid size={{xs:12, md:3}}>
-                <TextField
-                  fullWidth
-                  label="Ímpares Mínimo"
-                  type="number"
-                  value={filtros.imparesMinimo || ''}
-                  onChange={(e) => handleFiltroChange('imparesMinimo', e.target.value ? parseInt(e.target.value) : undefined)}
-                  disabled={!usarPares}
-                />
-              </Grid>
-              <Grid size={{xs:12, md:3}}>
-                <TextField
-                  fullWidth
-                  label="Ímpares Máximo"
-                  type="number"
-                  value={filtros.imparesMaximo || ''}
-                  onChange={(e) => handleFiltroChange('imparesMaximo', e.target.value ? parseInt(e.target.value) : undefined)}
                   disabled={!usarPares}
                 />
               </Grid>
@@ -465,7 +515,7 @@ const buscarSugestoes = async () => {
           onClick={(e) => e.stopPropagation()}
         />
       }
-      label="Linhas e Colunas"
+      label="Linhas e Colunas que não devem existir"
       sx={{ mr: 2 }}
     />
   </AccordionSummary>
@@ -543,52 +593,6 @@ const buscarSugestoes = async () => {
         </FormControl>
       </Grid>
     </Grid>
-  </AccordionDetails>
-</Accordion>
-
-{/* Escolha de números obrigatórios */}
-<Accordion expanded={expandedFilters.includes('numerosObrigatorios')} onChange={handleAccordionChange('numerosObrigatorios')}>
-  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-    <FormControlLabel
-      control={
-        <Switch
-          checked={usarNumerosEspecificos}
-          onChange={(e) => setUsarNumerosEspecificos(e.target.checked)}
-          onClick={(e) => e.stopPropagation()}
-        />
-      }
-      label="Números Obrigatórios"
-      sx={{ mr: 2 }}
-    />
-  </AccordionSummary>
-  <AccordionDetails>
-    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 1 }}>
-      {Array.from({ length: 25 }, (_, i) => i + 1).map(numero => (
-        <Chip
-          key={numero}
-          label={numero}
-          color={filtros.numerosObrigatorios.includes(numero) ? "primary" : "default"}
-          onClick={() => {
-            setFiltros(prev => {
-              const selecionados = prev.numerosObrigatorios;
-              return {
-                ...prev,
-                numerosObrigatorios: selecionados.includes(numero)
-                  ? selecionados.filter(n => n !== numero)
-                  : [...selecionados, numero]
-              };
-            });
-          }}
-          sx={{
-            borderRadius: '50%',
-            width: 38,
-            height: 38,
-            fontSize: '0.8rem',
-            fontWeight: 'bold'
-          }}
-        />
-      ))}
-    </Box>
   </AccordionDetails>
 </Accordion>
 
