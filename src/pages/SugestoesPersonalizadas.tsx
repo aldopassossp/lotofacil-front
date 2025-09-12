@@ -181,6 +181,8 @@ const buscarSugestoes = async () => {
     setUsarSorteado(false);
     setUsarNumerosEspecificos(false);
     setNaoUsarNumerosEspecificos(false);
+    setResultados([]);
+    setExpandedFilters([]);
   };
 
   const renderNumeros = (todos: Todos) => {

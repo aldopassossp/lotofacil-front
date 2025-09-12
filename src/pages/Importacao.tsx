@@ -112,13 +112,13 @@ const Importacao: React.FC = () => {
               </Typography>
             </Alert>
 
-            {resultado.concursosImportados.length > 0 && (
+            {resultado?.concursosImportados?.length > 0 && (
               <Box sx={{ mt: 2 }}>
                 <Typography variant="subtitle1" gutterBottom>
                   Concursos importados:
                 </Typography>
                 <Grid container spacing={1}>
-                  {resultado.concursosImportados.map((concurso) => (
+                  {resultado.concursosImportados?.map((concurso) => (
                     <Grid key={concurso}>
                       <Paper sx={{ p: 1, textAlign: 'center', bgcolor: '#e3f2fd' }}>
                         {concurso}
@@ -129,13 +129,13 @@ const Importacao: React.FC = () => {
               </Box>
             )}
 
-            {resultado.concursosExistentes.length > 0 && (
+            {resultado?.concursosExistentes?.length > 0 && (
               <Box sx={{ mt: 2 }}>
                 <Typography variant="subtitle1" gutterBottom>
                   Concursos já existentes (não importados):
                 </Typography>
                 <Grid container spacing={1}>
-                  {resultado.concursosExistentes.map((concurso) => (
+                  {resultado.concursosExistentes?.map((concurso) => (
                     <Grid key={concurso}>
                       <Paper sx={{ p: 1, textAlign: 'center', bgcolor: '#fff3e0' }}>
                         {concurso}
