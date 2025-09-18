@@ -22,7 +22,11 @@ import {
   Divider,
   Slider,
   Switch,
-  OutlinedInput
+  OutlinedInput,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -32,6 +36,9 @@ import { FiltroSugestaoDTO } from '../dto/sugestao/FiltroSugestaoDTO';
 import dashboardService from '../services/dashboard/dashboardService';
 import sugestaoService from '../services/sugestao/sugestaoService';
 import { Todos } from '../entity/Todos';
+import filtroFavoritoService from '../services/filtro/filtroFavoritoService';
+
+import type { FiltroFavorito } from '../services/filtro/filtroFavoritoService';
 
 const SugestoesPersonalizadas: React.FC = () => {
   const [filtros, setFiltros] = useState<FiltroSugestaoDTO>({
@@ -61,6 +68,20 @@ const SugestoesPersonalizadas: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [expandedFilters, setExpandedFilters] = useState<string[]>(["basicos"]);
 
+  const [favoritos, setFavoritos] = useState<FiltroFavorito[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [nomeFavorito, setNomeFavorito] = useState("");
+  const [favoritoSelecionado, setFavoritoSelecionado] = useState<number | null>(null);
+
+  const carregarFavoritos = async () => {
+    try {
+      const resp = await filtroFavoritoService.listar();
+      setFavoritos(resp.data);
+    } catch (err) {
+      console.error("Erro ao carregar favoritos", err);
+    }
+  };
+
   useEffect(() => {
   const carregarDados = async () => {
     try {
@@ -83,6 +104,8 @@ const SugestoesPersonalizadas: React.FC = () => {
         });
       };
 
+      carregarFavoritos();
+
       setLinhasDisponiveis(extrairRotulos(linhasResp));
       setColunasDisponiveis(extrairRotulos(colunasResp));
     } catch (error) {
@@ -92,6 +115,40 @@ const SugestoesPersonalizadas: React.FC = () => {
 
     carregarDados();
   }, []);
+
+
+  const salvarFavorito = async () => {
+    try {
+      await filtroFavoritoService.salvar(nomeFavorito, filtros);
+      setDialogOpen(false);
+      setNomeFavorito("");
+      carregarFavoritos();
+    } catch (err) {
+      console.error("Erro ao salvar favorito", err);
+    }
+  };
+
+  const aplicarFavorito = async (id: number) => {
+    try {
+      const resp = await filtroFavoritoService.carregar(id);
+      setFiltros(resp.data);
+      setFavoritoSelecionado(id);
+    } catch (err) {
+      console.error("Erro ao carregar favorito", err);
+    }
+  };
+
+  const excluirFavorito = async (id: number) => {
+    try {
+      await filtroFavoritoService.excluir(id);
+      if (favoritoSelecionado === id) {
+        setFavoritoSelecionado(null);
+      }
+      carregarFavoritos();
+    } catch (err) {
+      console.error("Erro ao excluir favorito", err);
+    }
+  };
 
 
   // Estados para controle de filtros avançados
@@ -227,6 +284,58 @@ const buscarSugestoes = async () => {
           <Typography variant="h6">Filtros de Busca</Typography>
         </Box>
 
+        <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 2 }}>
+  <Button variant="outlined" onClick={() => setDialogOpen(true)}>
+    Salvar como Favorito
+  </Button>
+
+  <FormControl sx={{ minWidth: 200 }}>
+    <InputLabel>Favoritos</InputLabel>
+    <Select
+      value={favoritoSelecionado ?? ""}
+      onChange={(e) => aplicarFavorito(Number(e.target.value))}
+      label="Favoritos"
+    >
+      {favoritos.map((fav) => (
+        <MenuItem key={fav.id} value={fav.id}>
+          {fav.nome}
+        </MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+
+  {favoritoSelecionado && (
+    <Button
+      variant="outlined"
+      color="error"
+      onClick={() => excluirFavorito(favoritoSelecionado)}
+    >
+      Excluir
+    </Button>
+  )}
+</Box>
+
+<Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+  <DialogTitle>Salvar Filtro como Favorito</DialogTitle>
+  <DialogContent>
+    <TextField
+      autoFocus
+      margin="dense"
+      label="Nome do Favorito"
+      fullWidth
+      value={nomeFavorito}
+      onChange={(e) => setNomeFavorito(e.target.value)}
+    />
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
+    <Button onClick={salvarFavorito} disabled={!nomeFavorito}>
+      Salvar
+    </Button>
+  </DialogActions>
+</Dialog>
+
+
 {/* Escolha de números obrigatórios */}
 <Accordion expanded={expandedFilters.includes('numerosObrigatorios')} onChange={handleAccordionChange('numerosObrigatorios')}>
   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -262,8 +371,8 @@ const buscarSugestoes = async () => {
           }}
           sx={{
             borderRadius: '50%',
-            width: 38,
-            height: 38,
+            width: 40,
+            height: 40,
             fontSize: '0.8rem',
             fontWeight: 'bold'
           }}
@@ -308,8 +417,8 @@ const buscarSugestoes = async () => {
           }}
           sx={{
             borderRadius: '50%',
-            width: 38,
-            height: 38,
+            width: 40,
+            height: 40,
             fontSize: '0.8rem',
             fontWeight: 'bold'
           }}
