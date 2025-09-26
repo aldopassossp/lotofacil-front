@@ -1,5 +1,5 @@
 export interface Sorteados {
-    idSorteados: number;
+    id_sorteados: number;
     sorteio?: string;
     idTodos?: number;
     bola1?: number;

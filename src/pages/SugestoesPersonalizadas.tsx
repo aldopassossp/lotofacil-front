@@ -73,6 +73,12 @@ const SugestoesPersonalizadas: React.FC = () => {
   const [nomeFavorito, setNomeFavorito] = useState("");
   const [favoritoSelecionado, setFavoritoSelecionado] = useState<number | null>(null);
 
+  // --- Estados para geração de combinações ---
+  const [qtdCombinacoes, setQtdCombinacoes] = useState<number>(10);
+  const [tipoCombinacao, setTipoCombinacao] = useState<'15' | '16' | '17'>('15');
+  const [gerando, setGerando] = useState(false);
+  const [combinacoesGeradas, setCombinacoesGeradas] = useState<number[][]>([]);
+
   const carregarFavoritos = async () => {
     try {
       const resp = await filtroFavoritoService.listar();
@@ -241,6 +247,27 @@ const buscarSugestoes = async () => {
     setResultados([]);
     setExpandedFilters([]);
   };
+
+  const gerarCombinacoes = async () => {
+  try {
+    setGerando(true);
+    setCombinacoesGeradas([]);
+
+    // Chama a API que você vai implementar no backend
+    const resp = await sugestaoService.gerarCombinacoes({
+      filtros,
+      quantidade: qtdCombinacoes,
+      tipo: tipoCombinacao
+    });
+
+    setCombinacoesGeradas(resp.data);
+  } catch (err) {
+    console.error("Erro ao gerar combinações", err);
+  } finally {
+    setGerando(false);
+  }
+};
+
 
   const renderNumeros = (todos: Todos) => {
     // Extrai os números da string 'sequencia', converte para número e ordena
@@ -740,6 +767,51 @@ const buscarSugestoes = async () => {
           </AccordionDetails>
         </Accordion>
 
+        {/* Gerar Combinações */}
+<Accordion expanded={expandedFilters.includes('combinacoes')} onChange={handleAccordionChange('combinacoes')}>
+  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+    <Typography>Gerar Combinações</Typography>
+  </AccordionSummary>
+  <AccordionDetails>
+    <Grid container spacing={2}>
+      <Grid size={{ xs: 12, md: 6 }}>
+        <TextField
+          fullWidth
+          label="Quantidade de combinações"
+          type="number"
+          value={qtdCombinacoes}
+          onChange={(e) => setQtdCombinacoes(Number(e.target.value))}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, md: 6 }}>
+        <FormControl fullWidth>
+          <InputLabel>Tamanho do jogo</InputLabel>
+          <Select
+            value={tipoCombinacao}
+            onChange={(e) => setTipoCombinacao(e.target.value as '15' | '16' | '17')}
+          >
+            <MenuItem value="15">15 números</MenuItem>
+            <MenuItem value="16">16 números</MenuItem>
+            <MenuItem value="17">17 números</MenuItem>
+          </Select>
+        </FormControl>
+      </Grid>
+    </Grid>
+
+    <Box sx={{ mt: 2 }}>
+      <Button
+        variant="contained"
+        color="secondary"
+        onClick={gerarCombinacoes}
+        disabled={gerando}
+      >
+        {gerando ? "Gerando..." : "Gerar Combinações"}
+      </Button>
+    </Box>
+  </AccordionDetails>
+</Accordion>
+
+
         <Divider sx={{ my: 3 }} />
 
         {/* Botões de Ação */}
@@ -832,7 +904,62 @@ const buscarSugestoes = async () => {
           Nenhum resultado encontrado com os filtros aplicados. Tente ajustar os critérios de busca.
         </Alert>
       )}
+
+      {/* Exibir combinações geradas */}
+{combinacoesGeradas.length > 0 && (
+  <Paper sx={{ p: 3, mt: 3 }}>
+    <Typography variant="h6" gutterBottom>
+      Combinações Geradas ({combinacoesGeradas.length})
+    </Typography>
+    <Grid container spacing={3}>
+      {combinacoesGeradas.map((comb, idx) => (
+        <Grid size={{ xs: 12, md: 6, lg: 4 }} key={idx}>
+          <Card>
+            <CardContent>
+              <Typography variant="subtitle1">Jogo {idx + 1}</Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                {comb.map((num, i) => (
+                  <Chip
+                    key={i}
+                    label={String(num).padStart(2, '0')}
+                    color="primary"
+                    variant="outlined"
+                    sx={{ width: 40, height: 40, borderRadius: '50%' }}
+                  />
+                ))}
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
+  </Paper>
+)}
+
+<Button
+  variant="contained"
+  color="success"
+  onClick={async () => {
+    try {
+      const payload = combinacoesGeradas.map(c => ({
+        numeros: c.join("-"),
+        tipo: tipoCombinacao,
+      }));
+      await sugestaoService.salvarSugestoes(payload);
+      alert("Sugestões salvas com sucesso!");
+    } catch (err) {
+      console.error("Erro ao salvar sugestões", err);
+      alert("Erro ao salvar sugestões");
+    }
+  }}
+>
+  Salvar Sugestões
+</Button>
+
+
     </Box>
+    
+
   );
 };
 

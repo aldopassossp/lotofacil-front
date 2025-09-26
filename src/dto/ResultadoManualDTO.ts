@@ -1,5 +1,5 @@
 export interface ResultadoManualDTO {
-    idSorteados: number;
+    id: number;
     dataSorteio: string;
     numeros: number[];
 }

@@ -6,6 +6,7 @@ import Importacao from './pages/Importacao';
 import Sugestoes from './pages/Sugestoes';
 import EntradaManual from './pages/EntradaManual';
 import SugestoesPersonalizadas from './pages/SugestoesPersonalizadas';
+import HistoricoSugestoes from './pages/HistoricoSugestoes';
 import Layout from './components/Layout';
 import HealthCheck from './components/HealthCheck';
 import { CustomThemeProvider } from './contexts/ThemeContext'; // Import the custom theme provider
@@ -23,6 +24,7 @@ function App() {
             <Route path="/sugestoes" element={<Sugestoes />} />
             <Route path="/entrada-manual" element={<EntradaManual />} />
             <Route path="/sugestoes-personalizadas" element={<SugestoesPersonalizadas />} />
+            <Route path="/historico" element={<HistoricoSugestoes />} />
           </Routes>
           <HealthCheck />
         </Layout>

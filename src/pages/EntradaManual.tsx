@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Box, Typography, TextField, Button, Grid, Paper, Alert, CircularProgress, Checkbox, FormControlLabel, FormGroup, Container } from '@mui/material';
 
 const EntradaManual: React.FC = () => {
-    const [concurso, setConcurso] = useState<string>('');
+    const [id_sorteados, setId_Sorteados] = useState<string>('');
     const [dataSorteio, setDataSorteio] = useState<string>(''); // Use appropriate date format/picker later
     const [numerosSelecionados, setNumerosSelecionados] = useState<Set<number>>(new Set());
     const [loading, setLoading] = useState<boolean>(false);
@@ -38,7 +38,7 @@ const EntradaManual: React.FC = () => {
             setError('Selecione exatamente 15 números.');
             return;
         }
-        if (!concurso || isNaN(parseInt(concurso, 10))) {
+        if (!id_sorteados || isNaN(parseInt(id_sorteados, 10))) {
             setError('Número do concurso inválido.');
             return;
         }
@@ -48,7 +48,7 @@ const EntradaManual: React.FC = () => {
         }
 
         const dto: ResultadoManualDTO = {
-            concurso: parseInt(concurso, 10),
+            id_sorteados: parseInt(id_sorteados, 10),
             dataSorteio: dataSorteio, // Ensure format matches backend expectation (e.g., dd/MM/yyyy)
             numeros: Array.from(numerosSelecionados).sort((a, b) => a - b)
         };
@@ -56,9 +56,9 @@ const EntradaManual: React.FC = () => {
         setLoading(true);
         try {
             await resultadoService.adicionarResultadoManual(dto);
-            setSuccess(`Resultado do concurso ${concurso} adicionado com sucesso!`);
+            setSuccess(`Resultado do concurso ${id_sorteados} adicionado com sucesso!`);
             // Clear form
-            setConcurso('');
+            setId_Sorteados('');
             setDataSorteio('');
             setNumerosSelecionados(new Set());
         } catch (err: any) {
@@ -113,8 +113,8 @@ const EntradaManual: React.FC = () => {
                             <TextField
                                 label="Número do Concurso"
                                 type="number"
-                                value={concurso}
-                                onChange={(e) => setConcurso(e.target.value)}
+                                value={id_sorteados}
+                                onChange={(e) => setId_Sorteados(e.target.value)}
                                 fullWidth
                                 required
                                 InputProps={{ inputProps: { min: 1 } }}
@@ -166,7 +166,7 @@ const EntradaManual: React.FC = () => {
 
 // Need to define the DTO type or import it
 interface ResultadoManualDTO {
-    concurso: number;
+    id_sorteados: number;
     dataSorteio: string;
     numeros: number[];
 }

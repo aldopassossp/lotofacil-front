@@ -75,6 +75,14 @@ const Layout = ({ children }: LayoutProps) => {
               </ListItemIcon>
               <ListItemText primary="Sugestões (Filtros)" />
             </ListItemButton>
+            {/* Add link for Histórico de Sugestões */}
+            <ListItemButton component={RouterLink} to="/historico">
+              <ListItemIcon>
+                <FilterAltIcon />
+              </ListItemIcon>
+              <ListItemText primary="Histórico de Sugestões" />
+            </ListItemButton>
+
           </List>
           <Divider />
         </Box>
