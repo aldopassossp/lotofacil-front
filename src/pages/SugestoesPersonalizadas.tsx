@@ -252,17 +252,47 @@ const buscarSugestoes = async () => {
   try {
     setGerando(true);
     setCombinacoesGeradas([]);
+    setError(null);
 
     // Chama a API que você vai implementar no backend
-    const resp = await sugestaoService.gerarCombinacoes({
-      filtros,
-      quantidade: qtdCombinacoes,
-      tipo: tipoCombinacao
-    });
+    // const resp = await sugestaoService.gerarCombinacoes({
+    //   filtros,
+    //   quantidade: qtdCombinacoes,
+    //   tipo: tipoCombinacao
+    // });
+    const resp = await fetch(
+        `http://localhost:8080/api/ml/sugerir?qtd=${qtdCombinacoes}&aplicar_filtros=true`
+      );
 
-    setCombinacoesGeradas(resp.data);
+      if (!resp.ok) {
+        throw new Error("Erro ao conectar ao backend");
+      }
+
+      const data = await resp.json();
+
+       if (data.erro) {
+        setError(data.erro);
+        setCombinacoesGeradas([]);
+      } else {
+        // garante que seja array de arrays de números
+        const lista = Array.isArray(data.sugestoes)
+          ? data.sugestoes.map((s: string | number[]) =>
+              Array.isArray(s)
+                ? s
+                : String(s)
+                    .split(/[\s,-]+/)
+                    .map((n) => parseInt(n, 10))
+                    .filter((n) => !isNaN(n))
+            )
+          : [];
+
+        setCombinacoesGeradas(lista);
+      }
+
+    //setCombinacoesGeradas(resp.data);
   } catch (err) {
     console.error("Erro ao gerar combinações", err);
+    setError("Não foi possível gerar combinações.");
   } finally {
     setGerando(false);
   }
